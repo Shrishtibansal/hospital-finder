@@ -6,6 +6,7 @@
 <body>
     <h1>Find Nearby Hospitals</h1>
     <input type="text" id="city" placeholder="Enter city name">
+    <input type="text" id="specialty" placeholder="Specialty (optional, e.g. eye, children)">
     <button onclick="findHospitals()">Use My Location & Search</button>
 
     <div id="results"></div>
@@ -13,6 +14,7 @@
     <script>
         function findHospitals() {
             const city = document.getElementById("city").value;
+            const specialty = document.getElementById("specialty").value;
 
             navigator.geolocation.getCurrentPosition(function(position) {
                 const lat = position.coords.latitude;
@@ -21,7 +23,7 @@
                 fetch("/find-hospitals", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ latitude: lat, longitude: lon, city: city })
+                    body: JSON.stringify({ latitude: lat, longitude: lon, city: city, specialty: specialty })
                 })
                 .then(response => response.json())
                 .then(data => {

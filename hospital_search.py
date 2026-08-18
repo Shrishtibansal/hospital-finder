@@ -40,10 +40,16 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     return round(distance, 2)
 
 
-def search_hospitals(city, user_lat, user_lon):
+def search_hospitals(city, user_lat, user_lon, specialty=""):
     url = "https://nominatim.openstreetmap.org/search"
+
+    if specialty:
+        query = f"{specialty} hospital in {city}"
+    else:
+        query = f"hospital in {city}"
+
     params = {
-        "q": f"hospital in {city}",
+        "q": query,
         "format": "json",
         "limit": 10,
         "countrycodes": "in",
@@ -81,6 +87,7 @@ def search_hospitals(city, user_lat, user_lon):
 if __name__ == "__main__":
     city = input("Enter city name: ")
     user_location = input("Enter your area/locality (e.g. 'Malviya Nagar, Jaipur'): ")
+    specialty = input("Enter specialty (e.g. 'eye', 'children') or press Enter to skip: ")
 
     full_query = f"{user_location}, {city}"
     user_lat, user_lon = get_coordinates(full_query)
@@ -92,7 +99,7 @@ if __name__ == "__main__":
     if user_lat is None:
         print("Sorry, couldn't find that city either. Try being more specific.")
     else:
-        results = search_hospitals(city, user_lat, user_lon)
+        results = search_hospitals(city, user_lat, user_lon, specialty)
         for h in results:
             print(h["name"])
             print(h["address"])
