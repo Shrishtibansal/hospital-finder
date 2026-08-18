@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Emergency Hospital Finder</title>
+</head>
+<body>
+    <h1>Find Nearby Hospitals</h1>
+    <input type="text" id="city" placeholder="Enter city name">
+    <button onclick="findHospitals()">Use My Location & Search</button>
+
+    <div id="results"></div>
+
+    <script>
+        function findHospitals() {
+            const city = document.getElementById("city").value;
+
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+
+                fetch("/find-hospitals", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ latitude: lat, longitude: lon, city: city })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    let html = "";
+                    if (data.length === 0) {
+                        html = "<p>No hospitals found. Please check the city name and try again.</p>";
+                    } else {
+                        data.forEach(hospital => {
+                            let emergencyBadge = "";
+                            if (hospital.emergency === "yes") {
+                                emergencyBadge = " <span style='color:red; font-weight:bold;'>[EMERGENCY READY]</span>";
+                            }
+                            html += `<p><b>${hospital.name}</b>${emergencyBadge}<br>
+                                      ${hospital.address}<br>
+                                      Distance: ${hospital.distance_km} km<br>
+                                      Phone: ${hospital.phone}</p><hr>`;
+                        });
+                    }
+                    document.getElementById("results").innerHTML = html;
+                });
+            });
+        }
+    </script>
+</body>
+</html>

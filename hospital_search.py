@@ -46,7 +46,8 @@ def search_hospitals(city, user_lat, user_lon):
         "q": f"hospital in {city}",
         "format": "json",
         "limit": 10,
-        "countrycodes": "in"
+        "countrycodes": "in",
+        "extratags": 1
     }
     headers = {
         "User-Agent": "hospital-finder-app"
@@ -62,10 +63,14 @@ def search_hospitals(city, user_lat, user_lon):
 
         distance = calculate_distance(user_lat, user_lon, hospital_lat, hospital_lon)
 
+        extra = item.get("extratags") or {}
+
         hospital = {
             "name": item.get("name", "Unknown"),
             "address": item.get("display_name", "No address"),
-            "distance_km": distance
+            "distance_km": distance,
+            "emergency": extra.get("emergency", "unknown"),
+            "phone": extra.get("phone", "Not available")
         }
         hospitals.append(hospital)
 
@@ -92,4 +97,6 @@ if __name__ == "__main__":
             print(h["name"])
             print(h["address"])
             print(f"Distance: {h['distance_km']} km")
+            print(f"Emergency: {h['emergency']}")
+            print(f"Phone: {h['phone']}")
             print("---")
