@@ -11,7 +11,12 @@
 
     <div id="results"></div>
 
+    <button id="compareBtn" onclick="compareSelected()" style="display:none; margin-top:20px;">Compare Selected</button>
+    <div id="compareResults"></div>
+
     <script>
+        let currentHospitals = [];
+
         function findHospitals() {
             const city = document.getElementById("city").value;
             const specialty = document.getElementById("specialty").value;
@@ -27,24 +32,60 @@
                 })
                 .then(response => response.json())
                 .then(data => {
+                    currentHospitals = data;
                     let html = "";
                     if (data.length === 0) {
                         html = "<p>No hospitals found. Please check the city name and try again.</p>";
+                        document.getElementById("compareBtn").style.display = "none";
                     } else {
-                        data.forEach(hospital => {
+                        data.forEach((hospital, index) => {
                             let emergencyBadge = "";
                             if (hospital.emergency === "yes") {
                                 emergencyBadge = " <span style='color:red; font-weight:bold;'>[EMERGENCY READY]</span>";
                             }
-                            html += `<p><b>${hospital.name}</b>${emergencyBadge}<br>
+                            html += `<div>
+                                      <input type="checkbox" class="compareCheck" value="${index}">
+                                      <b>${hospital.name}</b>${emergencyBadge}<br>
                                       ${hospital.address}<br>
                                       Distance: ${hospital.distance_km} km<br>
-                                      Phone: ${hospital.phone}</p><hr>`;
+                                      Phone: ${hospital.phone}
+                                      </div><hr>`;
                         });
+                        document.getElementById("compareBtn").style.display = "inline-block";
                     }
                     document.getElementById("results").innerHTML = html;
+                    document.getElementById("compareResults").innerHTML = "";
                 });
             });
+        }
+
+        function compareSelected() {
+            const checkboxes = document.querySelectorAll(".compareCheck:checked");
+
+            if (checkboxes.length < 2) {
+                alert("Please select at least 2 hospitals to compare.");
+                return;
+            }
+            if (checkboxes.length > 3) {
+                alert("Please select a maximum of 3 hospitals.");
+                return;
+            }
+
+            let tableHtml = "<h2>Comparison</h2><table border='1' cellpadding='8'>";
+            tableHtml += "<tr><th>Name</th><th>Distance</th><th>Emergency</th><th>Phone</th></tr>";
+
+            checkboxes.forEach(checkbox => {
+                const hospital = currentHospitals[checkbox.value];
+                tableHtml += `<tr>
+                                <td>${hospital.name}</td>
+                                <td>${hospital.distance_km} km</td>
+                                <td>${hospital.emergency}</td>
+                                <td>${hospital.phone}</td>
+                              </tr>`;
+            });
+
+            tableHtml += "</table>";
+            document.getElementById("compareResults").innerHTML = tableHtml;
         }
     </script>
 </body>
