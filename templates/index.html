@@ -14,6 +14,10 @@
     <button id="compareBtn" onclick="compareSelected()" style="display:none; margin-top:20px;">Compare Selected</button>
     <div id="compareResults"></div>
 
+    <hr>
+    <h2>My Saved Hospitals</h2>
+    <div id="bookmarksList"></div>
+
     <script>
         let currentHospitals = [];
 
@@ -48,7 +52,8 @@
                                       <b>${hospital.name}</b>${emergencyBadge}<br>
                                       ${hospital.address}<br>
                                       Distance: ${hospital.distance_km} km<br>
-                                      Phone: ${hospital.phone}
+                                      Phone: ${hospital.phone}<br>
+                                      <button onclick="saveBookmark(${index})">Bookmark This</button>
                                       </div><hr>`;
                         });
                         document.getElementById("compareBtn").style.display = "inline-block";
@@ -87,6 +92,58 @@
             tableHtml += "</table>";
             document.getElementById("compareResults").innerHTML = tableHtml;
         }
+
+        function saveBookmark(index) {
+            const hospital = currentHospitals[index];
+
+            fetch("/bookmarks", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: hospital.name,
+                    address: hospital.address,
+                    distance_km: hospital.distance_km,
+                    phone: hospital.phone
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert("Bookmarked!");
+                loadBookmarks();
+            });
+        }
+
+        function loadBookmarks() {
+            fetch("/bookmarks")
+            .then(response => response.json())
+            .then(data => {
+                let html = "";
+                if (data.length === 0) {
+                    html = "<p>No saved hospitals yet.</p>";
+                } else {
+                    data.forEach(b => {
+                        html += `<div>
+                                  <b>${b.name}</b><br>
+                                  ${b.address}<br>
+                                  Distance: ${b.distance_km} km<br>
+                                  Phone: ${b.phone}<br>
+                                  <button onclick="removeBookmark(${b.id})">Remove</button>
+                                  </div><hr>`;
+                    });
+                }
+                document.getElementById("bookmarksList").innerHTML = html;
+            });
+        }
+
+        function removeBookmark(id) {
+            fetch(`/bookmarks/${id}`, { method: "DELETE" })
+            .then(response => response.json())
+            .then(data => {
+                loadBookmarks();
+            });
+        }
+
+        loadBookmarks();
     </script>
 </body>
 </html>
